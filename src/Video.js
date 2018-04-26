@@ -1,7 +1,9 @@
-import { Component } from 'react';
-import { ViewPropTypes, createElement } from 'react-native';
+// @flow
 
-import { PropTypes } from 'prop-types';
+import React from 'react'
+import { createElement, StyleSheet, ViewPropTypes } from 'react-native'
+
+import { PropTypes } from 'prop-types'
 
 type NormalProps = {
   /* Native only */
@@ -32,7 +34,6 @@ type NormalProps = {
   heigth?: ?number,
   style: ?PropTypes.StyleSheet,
 
-
   // resizeMode: PropTypes.string,
   // poster: PropTypes.string,
   // repeat: PropTypes.bool,
@@ -57,170 +58,162 @@ type NormalProps = {
   // onPlaybackRateChange: PropTypes.func,
   // onAudioFocusChanged: PropTypes.func,
   // onAudioBecomingNoisy: PropTypes.func,
-};
+}
 
 /* $FlowFixMe - the renderItem passed in from SectionList is optional there but
  * required here */
-type Props = NormalProps;
+type Props = NormalProps
 
-class Video extends Component<Props> {
+class Video extends React.Component<Props> {
+  state = {}
+  _videoRef: Video
 
   setNativeProps(props: Object) {
     if (this._videoRef) {
-      this._videoRef.setNativeProps(props);
+      this._videoRef.setNativeProps(props)
     }
   }
 
-  _assignRoot = (component) => {
-    this._root = component;
-  };
-
-  _onLoadStart = (event) => {
+  _onLoadStart = event => {
     if (this.props.onLoadStart) {
-      this.props.onLoadStart(event.nativeEvent);
+      this.props.onLoadStart(event.nativeEvent)
     }
-  };
+  }
 
-  _onLoad = (event) => {
+  _onLoad = event => {
     if (this.props.onLoad) {
-      this.props.onLoad(event.nativeEvent);
+      this.props.onLoad(event.nativeEvent)
     }
-  };
+  }
 
-  _onError = (event) => {
+  _onError = event => {
     if (this.props.onError) {
-      this.props.onError(event.nativeEvent);
+      this.props.onError(event.nativeEvent)
     }
-  };
+  }
 
-  _onProgress = (event) => {
+  _onProgress = event => {
     if (this.props.onProgress) {
-      this.props.onProgress(event.nativeEvent);
+      this.props.onProgress(event.nativeEvent)
     }
-  };
+  }
 
-  _onSeek = (event) => {
+  _onSeek = event => {
     if (this.state.showPoster) {
-      this.setState({ showPoster: false });
+      this.setState({ showPoster: false })
     }
 
     if (this.props.onSeek) {
-      this.props.onSeek(event.nativeEvent);
+      this.props.onSeek(event.nativeEvent)
     }
-  };
+  }
 
-  _onEnd = (event) => {
+  _onEnd = event => {
     if (this.props.onEnd) {
-      this.props.onEnd(event.nativeEvent);
+      this.props.onEnd(event.nativeEvent)
     }
-  };
+  }
 
-  _onTimedMetadata = (event) => {
+  _onTimedMetadata = event => {
     if (this.props.onTimedMetadata) {
-      this.props.onTimedMetadata(event.nativeEvent);
+      this.props.onTimedMetadata(event.nativeEvent)
     }
-  };
+  }
 
-  _onFullscreenPlayerWillPresent = (event) => {
+  _onFullscreenPlayerWillPresent = event => {
     if (this.props.onFullscreenPlayerWillPresent) {
-      this.props.onFullscreenPlayerWillPresent(event.nativeEvent);
+      this.props.onFullscreenPlayerWillPresent(event.nativeEvent)
     }
-  };
+  }
 
-  _onFullscreenPlayerDidPresent = (event) => {
+  _onFullscreenPlayerDidPresent = event => {
     if (this.props.onFullscreenPlayerDidPresent) {
-      this.props.onFullscreenPlayerDidPresent(event.nativeEvent);
+      this.props.onFullscreenPlayerDidPresent(event.nativeEvent)
     }
-  };
+  }
 
-  _onFullscreenPlayerWillDismiss = (event) => {
+  _onFullscreenPlayerWillDismiss = event => {
     if (this.props.onFullscreenPlayerWillDismiss) {
-      this.props.onFullscreenPlayerWillDismiss(event.nativeEvent);
+      this.props.onFullscreenPlayerWillDismiss(event.nativeEvent)
     }
-  };
+  }
 
-  _onFullscreenPlayerDidDismiss = (event) => {
+  _onFullscreenPlayerDidDismiss = event => {
     if (this.props.onFullscreenPlayerDidDismiss) {
-      this.props.onFullscreenPlayerDidDismiss(event.nativeEvent);
+      this.props.onFullscreenPlayerDidDismiss(event.nativeEvent)
     }
-  };
+  }
 
-  _onReadyForDisplay = (event) => {
+  _onReadyForDisplay = event => {
     if (this.props.onReadyForDisplay) {
-      this.props.onReadyForDisplay(event.nativeEvent);
+      this.props.onReadyForDisplay(event.nativeEvent)
     }
-  };
+  }
 
-  _onPlaybackStalled = (event) => {
+  _onPlaybackStalled = event => {
     if (this.props.onPlaybackStalled) {
-      this.props.onPlaybackStalled(event.nativeEvent);
+      this.props.onPlaybackStalled(event.nativeEvent)
     }
-  };
+  }
 
-  _onPlaybackResume = (event) => {
+  _onPlaybackResume = event => {
     if (this.props.onPlaybackResume) {
-      this.props.onPlaybackResume(event.nativeEvent);
+      this.props.onPlaybackResume(event.nativeEvent)
     }
-  };
+  }
 
-  _onPlaybackRateChange = (event) => {
-    if (this.state.showPoster && (event.nativeEvent.playbackRate !== 0)) {
-      this.setState({ showPoster: false });
+  _onPlaybackRateChange = event => {
+    if (this.state.showPoster && event.nativeEvent.playbackRate !== 0) {
+      this.setState({ showPoster: false })
     }
 
     if (this.props.onPlaybackRateChange) {
-      this.props.onPlaybackRateChange(event.nativeEvent);
+      this.props.onPlaybackRateChange(event.nativeEvent)
     }
-  };
+  }
 
   _onAudioBecomingNoisy = () => {
     if (this.props.onAudioBecomingNoisy) {
-      this.props.onAudioBecomingNoisy();
+      this.props.onAudioBecomingNoisy()
     }
-  };
+  }
 
-  _onAudioFocusChanged = (event) => {
+  _onAudioFocusChanged = event => {
     if (this.props.onAudioFocusChanged) {
-      this.props.onAudioFocusChanged(event.nativeEvent);
+      this.props.onAudioFocusChanged(event.nativeEvent)
     }
-  };
+  }
 
-  _onBuffer = (event) => {
+  _onBuffer = event => {
     if (this.props.onBuffer) {
-      this.props.onBuffer(event.nativeEvent);
+      this.props.onBuffer(event.nativeEvent)
     }
-  };
+  }
 
-  _captureRef = ref => {
-    /* $FlowFixMe(>=0.53.0 site=react_native_fb,react_native_oss) This comment
-     * suppresses an error when upgrading Flow's support for React. To see the
-     * error delete this comment and run Flow. */
-    this._videoRef = ref;
-  };
+  seek(time: number) {
+    this._videoRef.currentTime = time
+  }
 
   render() {
-    const {
-      source,
-      volume,
-      controls,
-      style,
-    } = this.props;
+    const { controls, paused, source, style, volume } = this.props
 
     return createElement('video', {
+      autoPlay: !paused,
+      ref: ref => (this._videoRef = ref),
       src: source.uri || source,
-      onLoadStart: this._onLoadStart,
-      onLoadedData: this._onLoad,
-      onError: this._onError,
-      onProgress: this._onProgress,
-      onSeeking: this._onSeek,
-      onEnded: this._onEnd,
-      onLoadedMetadata: this._onTimedMetadata,
-      onCanPlay: this._onReadyForDisplay,
-      onStalled: this._onPlaybackStalled,
+      onLoadStart: this._onLoadStart.bind(this),
+      onLoadedData: this._onLoad.bind(this),
+      onError: this._onError.bind(this),
+      onProgress: this._onProgress.bind(this),
+      onSeeking: this._onSeek.bind(this),
+      onEnded: this._onEnd.bind(this),
+      onLoadedMetadata: this._onTimedMetadata.bind(this),
+      onCanPlay: this._onReadyForDisplay.bind(this),
+      onStalled: this._onPlaybackStalled.bind(this),
       volume,
       controls,
       style,
-    });
+    })
   }
 }
 
@@ -289,6 +282,6 @@ Video.propTypes = {
   translateY: PropTypes.number,
   rotation: PropTypes.number,
   ...ViewPropTypes,
-};
+}
 
-export default Video;
+export default Video
