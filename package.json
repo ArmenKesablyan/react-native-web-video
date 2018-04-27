@@ -5,7 +5,9 @@
   "main": "src/Video.js",
   "license": "MIT",
   "author": "Adrián Insausti <ainsausti@quantum-ba.com> (https://github.com/adrianicv)",
-  "contributors": [],
+  "contributors": [
+    "Petr Bela <github@petrbela.com>"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:QuantumBA/react-native-web-video.git"

@@ -17,18 +17,20 @@ resolve: {
     alias: {
         'react-native': 'react-native-web',
         ...
-        'Video': 'react-native-web-video/src/Video',
+        'react-native-video': 'react-native-web-video',
     }
 }
 ```
 
 ## Usage
 
+The API is the same as of [react-native-video](https://github.com/react-native-community/react-native-video). It is a drop-in replacement for when you convert your react-native components to react-native-web.
+
 ```javascript
 // Within your render function, assuming you have a file called
 // "background.mp4" in your project. You can include multiple videos
 // on a single screen if you like.
-import Video from 'Video';
+import Video from 'react-native-video';
 
 <Video source={{uri: "background"}}   // Can be a URL or a local file.
        ref={(ref) => {
@@ -71,9 +73,13 @@ var styles = StyleSheet.create({
 });
 ```
 
-[1]: https://github.com/brentvatne/react-native-login/blob/56c47a5d1e23781e86e19b27e10427fd6391f666/App/Screens/UserInfoScreen.js#L32-L35
-[2]: https://github.com/react-native-community/react-native-video/tree/master/example
-[3]: https://developer.apple.com/library/ios/qa/qa1668/_index.html
+### HLS support
+
+This library provides transparent support for HLS files. Just use an `.m3u8` file, and add to the page:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+```
 
 ---
 

@@ -190,6 +190,26 @@ class Video extends React.Component<Props> {
     }
   }
 
+  componentDidMount() {
+    const video = this._videoRef
+    const source = this.props.source.uri || this.props.source
+    if (!window.Hls || source.indexOf('.m3u8') === -1) return
+
+    if (Hls.isSupported()) {
+      var hls = new Hls()
+      hls.loadSource(source)
+      hls.attachMedia(video)
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+    }
+    // hls.js is not supported on platforms that do not have Media Source Extensions (MSE) enabled.
+    // When the browser has built-in HLS support (check using `canPlayType`), we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video element throught the `src` property.
+    // This is using the built-in support of the plain video element, without using hls.js.
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = source
+      video.addEventListener('canplay', () => video.play())
+    }
+  }
+
   seek(time: number) {
     this._videoRef.currentTime = time
   }
