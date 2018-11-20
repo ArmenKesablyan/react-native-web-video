@@ -64,13 +64,100 @@ type NormalProps = {
  * required here */
 type Props = NormalProps
 
-class Video extends React.Component<Props> {
-  state = {}
-  _videoRef: Video
+export default class Video extends React.Component<Props> {
+  hlsFragment: { programDateTime: ?number, start: number }
+  hlsFragmentUpdatedAt: Date
+  progressTimer: ?IntervalID
+  videoElement: HTMLVideoElement
+
+  constructor(props: Props) {
+    super(props)
+
+    this._onLoadStart = this._onLoadStart.bind(this)
+    this._onLoad = this._onLoad.bind(this)
+    this._onError = this._onError.bind(this)
+    this._onProgress = this._onProgress.bind(this)
+    this._onSeek = this._onSeek.bind(this)
+    this._onEnd = this._onEnd.bind(this)
+    this._onTimedMetadata = this._onTimedMetadata.bind(this)
+    this._onReadyForDisplay = this._onReadyForDisplay.bind(this)
+    this._onPlaybackStalled = this._onPlaybackStalled.bind(this)
+
+    this.onPlay = this.onPlay.bind(this)
+    this.onPause = this.onPause.bind(this)
+  }
 
   setNativeProps(props: Object) {
-    if (this._videoRef) {
-      this._videoRef.setNativeProps(props)
+    if (this.videoElement) {
+      this.videoElement.setNativeProps(props)
+    }
+  }
+
+  componentDidMount() {
+    this.setUpHls()
+    this.startProgressTimer()
+  }
+
+  componentDidUpdate() {
+    this.startProgressTimer()
+  }
+
+  render() {
+    const { controls, paused, source, style, volume } = this.props
+
+    return createElement('video', {
+      autoPlay: !paused,
+      ref: ref => (this.videoElement = ref),
+      src: source.uri || source,
+      onLoadStart: this._onLoadStart,
+      onLoadedData: this._onLoad,
+      onError: this._onError,
+      onPlay: this.onPlay,
+      onPause: this.onPlay,
+      onProgress: this._onProgress,
+      onSeeking: this._onSeek,
+      onEnded: this._onEnd,
+      onLoadedMetadata: this._onTimedMetadata,
+      onCanPlay: this._onReadyForDisplay,
+      onStalled: this._onPlaybackStalled,
+      volume,
+      controls,
+      style,
+    })
+  }
+
+  seek(time: number) {
+    this.videoElement.currentTime = time
+  }
+
+  setUpHls() {
+    const video = this.videoElement
+    const source = this.props.source.uri || this.props.source
+    if (!window.Hls || source.indexOf('.m3u8') === -1) return
+
+    if (Hls.isSupported()) {
+      var hls = new Hls({
+        liveSyncDurationCount: 10,
+        liveMaxLatencyDurationCount: 15,
+      })
+      hls.loadSource(source)
+      hls.attachMedia(video)
+      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+      hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
+        this.hlsLevel = data
+      })
+      hls.on(Hls.Events.FRAG_CHANGED, (event, data) => {
+        this.hlsFragment = data.frag
+        this.hlsFragmentUpdatedAt = new Date()
+        console.log('FRAG_CHANGED', data.frag)
+      })
+    }
+    // hls.js is not supported on platforms that do not have Media Source Extensions (MSE) enabled.
+    // When the browser has built-in HLS support (check using `canPlayType`), we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video element throught the `src` property.
+    // This is using the built-in support of the plain video element, without using hls.js.
+    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = source
+      video.addEventListener('canplay', () => video.play())
     }
   }
 
@@ -92,17 +179,21 @@ class Video extends React.Component<Props> {
     }
   }
 
+  onPlay = event => {
+    this.startProgressTimer()
+  }
+
+  onPause = event => {
+    this.stopProgressTimer()
+  }
+
   _onProgress = event => {
-    if (this.props.onProgress) {
-      this.props.onProgress(event.nativeEvent)
-    }
+    // if (this.props.onProgress) {
+    //   this.props.onProgress(event.nativeEvent)
+    // }
   }
 
   _onSeek = event => {
-    if (this.state.showPoster) {
-      this.setState({ showPoster: false })
-    }
-
     if (this.props.onSeek) {
       this.props.onSeek(event.nativeEvent)
     }
@@ -163,10 +254,6 @@ class Video extends React.Component<Props> {
   }
 
   _onPlaybackRateChange = event => {
-    if (this.state.showPoster && event.nativeEvent.playbackRate !== 0) {
-      this.setState({ showPoster: false })
-    }
-
     if (this.props.onPlaybackRateChange) {
       this.props.onPlaybackRateChange(event.nativeEvent)
     }
@@ -190,50 +277,52 @@ class Video extends React.Component<Props> {
     }
   }
 
-  componentDidMount() {
-    const video = this._videoRef
-    const source = this.props.source.uri || this.props.source
-    if (!window.Hls || source.indexOf('.m3u8') === -1) return
-
-    if (Hls.isSupported()) {
-      var hls = new Hls()
-      hls.loadSource(source)
-      hls.attachMedia(video)
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
+  onProgress = () => {
+    if (!this.props.onProgress) return
+    let currentDate
+    if (this.hlsFragment && this.hlsFragment.programDateTime) {
+      // const level = new Date(
+      //   this.hlsLevel.details.fragments[0].programDateTime -
+      //     this.hlsLevel.details.fragments[0].start +
+      //     this.videoElement.currentTime
+      // ).toISOString()
+      const fragment = new Date(
+        this.hlsFragment.programDateTime -
+          this.hlsFragment.start +
+          this.videoElement.currentTime
+      ).toISOString()
+      // const updatedAt = new Date(
+      //   this.hlsFragment.programDateTime -
+      //     this.hlsFragmentUpdatedAt.getTime() +
+      //     new Date().getTime()
+      // ).toISOString()
+      // console.log('level', level, 'fragment', fragment, 'updatedAt', updatedAt)
+      currentDate = fragment
     }
-    // hls.js is not supported on platforms that do not have Media Source Extensions (MSE) enabled.
-    // When the browser has built-in HLS support (check using `canPlayType`), we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video element throught the `src` property.
-    // This is using the built-in support of the plain video element, without using hls.js.
-    else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = source
-      video.addEventListener('canplay', () => video.play())
+
+    const payload = {
+      currentDate,
+      currentTime: this.videoElement.currentTime,
+      seekableDuration: this.videoElement.duration,
+    }
+    this.props.onProgress(payload)
+  }
+
+  startProgressTimer() {
+    if (!this.progressTimer && this.props.progressUpdateInterval) {
+      this.onProgress()
+      this.progressTimer = setInterval(
+        this.onProgress,
+        this.props.progressUpdateInterval
+      )
     }
   }
 
-  seek(time: number) {
-    this._videoRef.currentTime = time
-  }
-
-  render() {
-    const { controls, paused, source, style, volume } = this.props
-
-    return createElement('video', {
-      autoPlay: !paused,
-      ref: ref => (this._videoRef = ref),
-      src: source.uri || source,
-      onLoadStart: this._onLoadStart.bind(this),
-      onLoadedData: this._onLoad.bind(this),
-      onError: this._onError.bind(this),
-      onProgress: this._onProgress.bind(this),
-      onSeeking: this._onSeek.bind(this),
-      onEnded: this._onEnd.bind(this),
-      onLoadedMetadata: this._onTimedMetadata.bind(this),
-      onCanPlay: this._onReadyForDisplay.bind(this),
-      onStalled: this._onPlaybackStalled.bind(this),
-      volume,
-      controls,
-      style,
-    })
+  stopProgressTimer() {
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer)
+      this.progressTimer = null
+    }
   }
 }
 
@@ -303,5 +392,3 @@ Video.propTypes = {
   rotation: PropTypes.number,
   ...ViewPropTypes,
 }
-
-export default Video
