@@ -143,9 +143,6 @@ export default class Video extends React.Component<Props> {
       hls.loadSource(source)
       hls.attachMedia(video)
       hls.on(Hls.Events.MANIFEST_PARSED, () => video.play())
-      hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
-        this.hlsLevel = data
-      })
       hls.on(Hls.Events.FRAG_CHANGED, (event, data) => {
         this.hlsFragment = data.frag
         this.hlsFragmentUpdatedAt = new Date()
@@ -281,23 +278,11 @@ export default class Video extends React.Component<Props> {
     if (!this.props.onProgress) return
     let currentDate
     if (this.hlsFragment && this.hlsFragment.programDateTime) {
-      // const level = new Date(
-      //   this.hlsLevel.details.fragments[0].programDateTime -
-      //     this.hlsLevel.details.fragments[0].start +
-      //     this.videoElement.currentTime
-      // ).toISOString()
-      const fragment = new Date(
+      currentDate = new Date(
         this.hlsFragment.programDateTime -
           this.hlsFragment.start +
           this.videoElement.currentTime
       ).toISOString()
-      // const updatedAt = new Date(
-      //   this.hlsFragment.programDateTime -
-      //     this.hlsFragmentUpdatedAt.getTime() +
-      //     new Date().getTime()
-      // ).toISOString()
-      // console.log('level', level, 'fragment', fragment, 'updatedAt', updatedAt)
-      currentDate = fragment
     }
 
     const payload = {
