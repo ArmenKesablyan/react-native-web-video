@@ -102,6 +102,10 @@ export default class Video extends React.Component<Props> {
     this.startProgressTimer()
   }
 
+  componentWillUnmount() {
+    this.stopProgressTimer()
+  }
+
   render() {
     const { controls, paused, source, style, volume } = this.props
 
